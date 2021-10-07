@@ -1,0 +1,353 @@
+* ############ Udemy ############
+* k8 installation
+** Intro
+- Kubernetes is a series of container,CLI and configrations
+- many ways to install, let focus on  easier for learning
+- Dokcer Destop : Enable in settings
+                  - Sets up everything inside Docker's existing Linxu Vm
+- Docker Toolbox on Windows: miniKube
+                  - Use VirtualBox to make Linux Vm
+- Your Own Linux Host or Vm : microk8's
+                  - Install Kubernetes right on the  OS
+- Kubernetes in a browser
+  https:katakoda.com
+  https:play-with-k8.com
+** Kubernetics Ubuntu installation
+Open source contaner managment and orchestration
+
+Step1 : install docker for kubernetics in both master and slave
+https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+
+Step 2 : install kubelet kubeadm kubectl in both master and slave
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
+Installing kubeadm, kubelet and kubectl
+
+- kubeadm: the command to *bootstrap the cluster*.
+- kubelet: the component that runs on all of the machines in your cluster and does things like *starting pods and containers*.
+- kubectl: the command line util to *talk to your cluster*.
+  
+#+BEGIN_SRC sh
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+#+END_SRC
+
+
+
+
+#+BEGIN_SRC sh
+#Create a cluster in master
+kubeadmin init #<args>
+
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
+
+# To start using cluster , you need to run the following  as regular user
+
+# # mkdir -p $HOmE/.kube
+# # sudo cp -i /etc/kubenetes/admin.conf $HOmE/.kube/config
+# # sudo chown $(id -u): $(id -g) $HOmE/.kube/config
+
+# You should now deploy a pod network to the cluster.
+# Run "kubectl apply -f [podnetwork].yaml"  with one of  optional  listed at:
+   #  ..
+# Then you can join any number of worker nodese by running the following on each is root:
+#kubeadm join 172.31.85.184:6443 --token jba6u7.rjkwcd9diiw33x7u / --discovery-token-ca-cert-hash sha256:077d9b3794d7e3d1f25222f6a21d505d9c13d1aa36d9cfab9751040eb6ab4ed
+
+
+kubectl get nodes # To show nodes
+
+
+
+# In slave linux
+kubeadm join 172.31.85.184:6443 --token jba6u7.rjkwcd9diiw33x7u / --discovery-token-ca-cert-hash sha256:077d9b3794d7e3d1f25222f6a21d505d9c13d1aa36d9cfab9751040eb6ab4ed
+
+# This node has join the cluster
+
+kubectl get nodes
+
+#+END_SRC
+
+** Vagrant for Kubernetis step 3 VM using vagrant
+https://www.youtube.com/watch?v=m5q7JEihdU4&t=26s
+* Kuberneteics(K8) Why/What [89]
+- Intro 
+  - Kuberneteics : popular container orchestrator
+  - Container Orchestration = make many servers act like one
+  - Released by Google in 2015 , maintained by large community
+  - Runs on top of Docker (usually) as  set of API's in containers
+  - Provides API/CLI to manage containers across servers
+  - many clouds provide it for you
+  - many vendor make a "distribution" of it
+  - 
+** Kubernetics or Swarm
+- Kubernetics and Swarm are both container orchestrators
+- Both are solid platform with vendor backing
+- Swarm: Easier to deploy/manage
+- Kubernetes: more feature and flexibility
+- What's right for you ? Understand both know  your requirements
+
+Advangatages of Swarm
+- Comes with Docker, Single vendor container platform
+- Easiest Orchestration to deploy/mangae youself
+- Follows 80/20 rule, 20% of features for 80% of use case
+- Runs anywhere Docker does::
+   - local, cloud, datacenter,
+   - ARm, Winodws, 32-bit
+- Secure by default
+- Easier to troubleshoot
+
+Advangates of Kubernetics
+- Has vendor support
+- Infrastructure vendor are making  the own distribution
+- Widest adoption and community
+- Flexible: Covers widest set of use cases
+- "Kubernetes first" vendor support
+- "No one ever got fired for buying IBm"
+- Picking solution isn't 100% rational
+- Trendy, will benefit you career
+** Architecture Terminology 
+*Kubernetes*: The whole orchestation system
+*Kubectl*: CLI to configure Kubernetes and manage apps also know as "CUBE CONTROL" offically
+*Node* : Single server in Kubernetes cluster
+       - In each Node we run a Kubernetes agent and other like : 
+         - Kubelet
+         - Kube-proxy : to controal Node Netwrok
+*Kubelet*: Kubernetes agent running on nodes
+    
+*Control Plane*: Set of Containers in Each Node that manages the cluster simillar to swarm leader or manager  and also called "master"
+   - Includes 
+     - *etcd* : distributed storage system for key-value simillar to raft protocol
+     - *API server*: to talk to cluster/serveices 
+     - *scheduler container*: How and where the containers are placed  on the node 
+     - *Controller manger*: Over-view or Manage all Node/Container/Cluster using API, to inspect that the order-User give what actually is going on.  
+     - *Core DNS* :   
+     - More like storage,network   
+   - Some time called   "Kubelet" : Kubernetes agent running  on nodes
+
+
+** k8s Container Abstraction:
+- *Pod* : one or more contianers running to-gether  on one Node
+  - Basic unit of deployment. Container are awalays  in pods
+- *Controller*: For creating/updating pods  and other objects
+  - Many Type of Controller
+    - {deployment, ReplicaSet, StatefulSet, DamemonSet, Job, CronJob, ..etc}
+- *Service*: Network endpoint to connect to pod
+- *Namespace*: Filtered group of object in cluster
+
+Run,Create, Apply Kubernetes
+#+begin_src sh
+kubectl run #changing to be only pod creation # simillar to docker run 
+kubectl create #creat some resources via CLI or yaml # docker swarm create
+kubectl apply #create/update anything via yaml # simillar to stack deploy in docker
+#+end_src
+* Creat 1st Pods
+Two ways to deploy pods
+- container
+- yaml file   
+#+begin_src
+kuberctl version
+kubectl run my-nginx --image nginx
+#
+kubectl get pods
+kubectl get all
+#+end_src
+
+Who pods is created
+- Inside Node/Master: there is kube running on top of docker 
+- Kubectl creates/cmd to Deployment which manage rolling-updagte, replica-set..etc
+  - Deployment creates/cmd to Replica set
+    - Replicaset creates Pod
+       
+#+begin_src
+kubectl delete deployment my-nginx
+#+end_src
+* Scaling ReplicaSets
+#+begin_src
+kubectl run my-apache --image httpd
+kubectl scale deploy/my-apache --replicas 2
+kubectl scale deployment my-apache --replicas 2 #above cmd is same as cmd
+#+end_src
+
+* Inspecting Deploy
+#+begin_src
+kubectl get pods
+
+kubectl logs deploy/my-apache # pull only one container logs 
+kubectl logs deploy/my-apache --follow --tail 1
+
+# Combine logs of all pods with my-apache
+
+kubectl logs -l run=my-apache  # it can pull only up to 5 pods
+
+# Info regarding individual pod
+kubectl get pods  # get name-id for it used in next cmd's
+kubectl describe pod/my-apache-54dc6c7  # simillar to docker inspect
+
+# Deleting a pod # simillar to deleting container in swarm/stack
+  # It will re-create the pod
+kubectl get pods -w #in one-window
+kubectl delete pod/my-apache-54dc6c7
+
+# rechech current pods
+kubectl get pods
+#+end_src
+* Services (Network )
+Exposing Containers
+- kubectl expose crates a service
+- service is a stable address for pods
+- If we want to connect to pods we need services
+- CoreDNS allows us to reslove service by name
+
+Basic Service Types:
+- ClusterIP (default)
+  - Single, interval virtual IP allocated
+  - Only reachable from within clusteter (node, pods)
+  - Pods can reach service on apps port number
+- NodePort
+  - High port allocated on each node
+  - Port is open on every node's Ip
+  - Anyone can connect (if they can reach node)
+  - Other pods need to be updated to this port
+ - These services are always avaiable in kubernetes
+
+More Service Types
+- LoadBlancer
+  - Controls a LoadBlancer end point external to the cluster
+  - Only avaiable when infra provider given you a Loadblancer
+  - Creates NodePort+CluserIp Services, tell LB to send to NodePort
+- ExternalName:
+  - Add CNAME DNS record to CoreDNS only
+  - Not used for Pods,but for giving pods a DNS name to use for something outside Kubenetes
+- Kubenetes Ingress:
+    - http/s traffic  
+
+* Create a ClusterIP
+#+begin_src
+kubectl get pods -w
+kubectl create deploy/http-env  --image=bretfisher/httpenv
+# scale 5
+kbuectl scale deploy/http-env --replicas=5
+
+# Create ClusterIP Service
+kubectl expose deploy/http-env --port 8888
+
+# get ClusterIP
+kubectl get service
+
+# inspect ClusterIP:
+#+end_src
+* TODO video 106 from udemy
+
+Timeline : Next week deathline dev env should be  in kubernetics
+* Install and configure kubernetecis
+source : https://blog.knoldus.com/how-to-install-kubernetes-on-ubuntu-20-04-kubeadm-and-minikube/
+aunch two ec2-intance (master and slave)
+os           : ubutnu 20.04 (18.06)
+instance-type:t2.medium
+security group:  <created new security group>  kuberentes
+need to open some ports in *inbound* : as given below
+https://kubernetes.io/docs/reference/ports-and-protocols/
+Install Docker
+#+begin_src sh
+sudo apt update
+sudo apt install docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
+#+end_src
+Install Kubernetes
+#+begin_src sh
+sudo apt install apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+sudo apt install kubeadm kubelet kubectl kubernetes-cni
+#+end_src
+Disable Swap Memory
+#+begin_src sh
+sudo swapoff -a
+sudo nano /etc/fstab
+# Inside this file, comment out the /swapfile line.
+#+end_src
+swap off
+#+begin_src sh
+sed -i '/ swap / s/^/#/' /etc/fstab
+#+end_src
+configure docker
+# c-group was not set properly
+# docekr c-gropu and name-space #20.04 default
+# set system to systemd
+# overlay2
+cd etc/docker
+#+begin_src sh
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+"exec-opts": ["native.cgroupdriver=systemd"],
+"log-driver": "json-file",
+"log-opts": {
+"max-size": "100m"
+},
+"storage-driver": "overlay2"
+}
+EOF
+systemctl daemon-reload
+systemctl restart docker
+#+end_src
+Set hostnames
+#+begin_src sh
+#kubernetes-master:~$
+sudo hostnamectl set-hostname kubernetes-master
+sudo hostnamectl set-hostname kubernetes-worker-1
+#+end_src
+On Master:
+Initialize the cluster (Execute the following command only on the Master node):
+#+begin_src sh
+#kubernetes-master:~$
+kubeadm init --pod-network-cidr=172.31.33.101/16
+#+end_src
+#+begin_src sh
+#kubernetes-master:~$
+# kubeadm join 172.31.33.101:6443 --token afk1x9.i9p3yed9o4iytj1j \
+#	--discovery-token-ca-cert-hash sha256:58d80548674968fa47f1df47507df983b9af815a3c7405da5654df3ba39825a6
+# kubectl get po --all-namespaces
+#+end_src
+Set up local kubeconfig(Execute the following command only on the Master node):
+#+begin_src sh
+#kubernetes-master:~$
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+#Alternatively, if you are the root user, you can run:
+export KUBECONFIG=/etc/kubernetes/admin.conf
+# #############################3
+# kubeadm reset --force
+# ###########################
+# this cmd is used to reset all the configuration
+#+end_src
+Apply Flannel CNI network overlay(Execute the following command only on the Master node):
+Deploy a pod network
+#+begin_src sh
+#kubernetes-master:~$
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+#kubectl delete -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#kubectl delete -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+#+end_src
+*deployment of core-dns is not working properly need to troubleshoot*
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+Then you can join any number of worker nodes by running the following on each as root:
+kubectl get po --all-namespaces
+#+begin_src sh
+#kubernetes-master:~$
+kubectl get nodes
+kubectl get pods --all-namespaces
+#need save etcd as backup in s3 file(*imp)
+#professional : run etcd in seperatea meachien
+#+end_src
+
